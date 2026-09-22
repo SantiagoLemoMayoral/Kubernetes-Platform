@@ -7,7 +7,7 @@ spec:
   source:
     repoURL: https://github.com/SantiagoLemoMayoral/kubernetes-platform.git
     targetRevision: main
-    path: helm/kubernetes-platform
+    path: helm/backend
 
     helm:
       valueFiles:

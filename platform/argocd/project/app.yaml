@@ -12,13 +12,13 @@ spec:
     - https://github.com/SantiagoLemoMayoral/kubernetes-platform.git
 
   destinations:
-    - namespace: random-dev
+    - namespace: kubernetes-platform-dev
       server: https://kubernetes.default.svc
 
-    - namespace: random-staging
+    - namespace: kubernetes-platform-staging
       server: https://kubernetes.default.svc
 
-    - namespace: random-prod
+    - namespace: kubernetes-platform-prod
       server: https://kubernetes.default.svc
 
   clusterResourceWhitelist:
