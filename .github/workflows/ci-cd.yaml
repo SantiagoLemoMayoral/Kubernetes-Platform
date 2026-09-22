@@ -1,0 +1,135 @@
+name: CI-CD-pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: ci-cd-main
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: kubernetes-platform
+
+jobs:
+  ci-cd:
+    runs-on: ubuntu-latest
+
+    steps:
+      # -------------------------------------------------
+      # 1. Get repository
+      # -------------------------------------------------
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # -------------------------------------------------
+      # 2. Python
+      # -------------------------------------------------
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install ruff pytest
+
+      # -------------------------------------------------
+      # 3. CI checks
+      # -------------------------------------------------
+      - name: Python syntax check
+        run: |
+          python -m compileall .
+
+      - name: Ruff
+        run: |
+          ruff check .
+
+      - name: Tests
+        run: |
+          pytest -q
+
+      # -------------------------------------------------
+      # 4. Authenticate AWS using OIDC
+      # -------------------------------------------------
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # -------------------------------------------------
+      # 5. Login to ECR
+      # -------------------------------------------------
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # -------------------------------------------------
+      # 6. Build + push immutable image
+      #
+      # Image:
+      # helpdesk:<git SHA>
+      # -------------------------------------------------
+      - name: Build and push Docker image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            .
+
+          docker push \
+            $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      # -------------------------------------------------
+      # 7. Install yq
+      # -------------------------------------------------
+      - name: Install yq
+        run: |
+          sudo wget \
+            https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 \
+            -O /usr/local/bin/yq
+
+          sudo chmod +x /usr/local/bin/yq
+
+      # -------------------------------------------------
+      # 8. Put SAME Git SHA into Helm
+      # -------------------------------------------------
+      - name: Update Helm image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          yq -i \
+            '.image.repository = env(ECR_REGISTRY) + "/" + env(ECR_REPOSITORY)' \
+            helm/kubernetes-platform/values.yaml
+
+          yq -i \
+            '.image.tag = env(IMAGE_TAG)' \
+            helm/kubernetes-platform/values.yaml
+
+      # -------------------------------------------------
+      # 9. Commit new image SHA back to Git
+      # -------------------------------------------------
+      - name: Commit Helm image SHA
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add helm/kubernetes-platform/values.yaml
+
+          git diff --cached --quiet && exit 0
+
+          git commit -m "deploy: image ${{ github.sha }} [skip ci]"
+
+          git push
