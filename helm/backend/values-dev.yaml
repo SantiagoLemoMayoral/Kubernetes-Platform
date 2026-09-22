@@ -1,0 +1,44 @@
+replicaCount: 3
+
+image:
+  repository: helpdesk
+  tag: v6
+  pullPolicy: IfNotPresent
+
+containerPort: 8000
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: nginx
+  host: helpdesk.example.com
+  path: /
+  pathType: Prefix
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+pdb:
+  minAvailable: 2
+
+config:
+  DJANGO_DEBUG: "false"
+  LOG_LEVEL: "INFO"
+
+
+# 123456789012.dkr.ecr.us-east-1.amazonaws.com/helpdesk

@@ -1,0 +1,9 @@
+apiVersion: v2
+
+name: kubernetes-platform
+description: kubernetes-platform application
+
+type: application
+
+version: 0.1.0
+appVersion: "1.0.0"

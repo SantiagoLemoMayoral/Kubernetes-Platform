@@ -1,0 +1,43 @@
+replicaCount: 3
+
+image:
+  repository: kubernetes-platform
+  tag: v6
+  pullPolicy: IfNotPresent
+
+containerPort: 8000
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+pdb:
+  minAvailable: 2
+
+config:
+  LOG_LEVEL: "INFO"
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations: {}
+  host: kubernetes-platform.local
+  path: /
+  pathType: Prefix
+
+# 123456789012.dkr.ecr.us-east-1.amazonaws.com/kubernetes-platform
