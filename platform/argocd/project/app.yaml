@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+
+metadata:
+  name: kubernetes-platform
+  namespace: argocd
+
+spec:
+  description: Argo CD project for the random application
+
+  sourceRepos:
+    - https://github.com/SantiagoLemoMayoral/kubernetes-platform.git
+
+  destinations:
+    - namespace: random-dev
+      server: https://kubernetes.default.svc
+
+    - namespace: random-staging
+      server: https://kubernetes.default.svc
+
+    - namespace: random-prod
+      server: https://kubernetes.default.svc
+
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
+
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"

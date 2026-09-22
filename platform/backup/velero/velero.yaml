@@ -1,0 +1,19 @@
+apiVersion: velero.io/v1
+kind: Schedule
+
+metadata:
+  name: kubernetes-platform-daily
+  namespace: velero
+
+spec:
+  schedule: "0 3 * * *"   # every day at 03:00
+
+  template:
+    includedNamespaces:
+      - kubernetes-platform-dev
+      - kubernetes-platform-staging
+      - kubernetes-platform-prod
+
+    ttl: 168h0m0s         # keep backup for 7 days
+
+    snapshotVolumes: true

@@ -1,0 +1,19 @@
+metadata:
+  name: kubernetes-platform-staging
+
+spec:
+  project: random
+
+  source:
+    repoURL: https://github.com/SantiagoLemoMayoral/kubernetes-platform.git
+    targetRevision: main
+    path: helm/kubernetes-platform
+
+    helm:
+      valueFiles:
+        - values.yaml
+        - values-staging.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kubernetes-platform-staging

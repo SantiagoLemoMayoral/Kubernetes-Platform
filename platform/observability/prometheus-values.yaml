@@ -1,0 +1,18 @@
+server:
+  persistentVolume:
+    enabled: false
+
+  service:
+    type: ClusterIP
+
+alertmanager:
+  enabled: false
+
+prometheus-pushgateway:
+  enabled: false
+
+kube-state-metrics:
+  enabled: true
+
+prometheus-node-exporter:
+  enabled: true

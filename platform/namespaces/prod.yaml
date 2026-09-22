@@ -1,0 +1,32 @@
+# namespaces/prod.yaml
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubernetes-platform-prod
+  labels:
+    environment: prod
+
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: prod-quota
+  namespace: kubernetes-platform-prod
+spec:
+  hard:
+    requests.cpu: "8"
+    requests.memory: 16Gi
+
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: prod-limits
+  namespace: kubernetes-platform-prod
+spec:
+  limits:
+    - type: Container
+      defaultRequest:
+        cpu: 100m
+        memory: 128Mi

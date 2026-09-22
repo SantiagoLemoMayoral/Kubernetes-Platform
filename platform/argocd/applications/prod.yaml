@@ -1,0 +1,19 @@
+metadata:
+  name: kubernetes-platform-prod
+
+spec:
+  project: kubernetes-platform
+
+  source:
+    repoURL: https://github.com/SantiagoLemoMayoral/kubernetes-platform.git
+    targetRevision: main
+    path: helm/kubernetes-platform
+
+    helm:
+      valueFiles:
+        - values.yaml
+        - values-prod.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kubernetes-platform-prod
